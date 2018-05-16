@@ -129,7 +129,7 @@ class SharesList{// used for weighting choices efficiently
 }
 
 class GenType{// Stratum > Zone generation type
-    constructor(properties){
+    constructor(properties){// Constructor requires all of these to be defined
         this.Name = properties.Name;// Simple description of Stratum/Zone type
         this.Article = properties.Article;// A/An
         this.LongDesc = properties.LongDesc;// Flavor text
@@ -156,34 +156,107 @@ var genTypes = {
 
 class TileType{
     constructor(properties){
-        this.Name = properties.name;
-        this.ShortDesc = properties.ShortDesc;
-        this.LongDesc = properties.LongDesc;
-        this.WalkGroup = properties.WalkGroup;
-        this.Icon = properties.Icon;
+        this.Name = properties.Name;// Very short description
+        // "A tile ($Name)."
+        this.LongDesc = properties.LongDesc;// Flavor text
+        this.WalkGroup = properties.WalkGroup;// used for calculating movement cost
+        // also used as a surrogate for VisionGroup
+        // TODO: override VisionGroup for things like solid glass
+        this.Icon = properties.Icon;// one-character display
     }
 }
 var tileTypes = {
     Sand: new TileType({
         Name: "Sand",
-        ShortDesc: "Sand.",
         LongDesc: "Sand. Probably not good for glass, all things considered.",
         WalkGroup: "Grit",
         Icon: "."
     }),
     SandstoneWall: new TileType({
         Name: "SandstoneWall",
-        ShortDesc: "Sandstone Wall.",
         LongDesc: "Sandstone wall. Almost nothing like sand except the color.",
         WalkGroup: "Opaque",
         Icon: "█"
     }),
     Door: new TileType({
         Name: "Door",
-        ShortDesc: "Door.",
         LongDesc: "A doorway to another Zone.",
         WalkGroup: "Flat",
         Icon: "+"
+    })
+}
+
+const statsNames = ["Strength", "Constitution", "Dexterity",
+    "Intelligence", "Wisdom", "Charisma", "HP", "MP", "Speed"];
+
+class CreatureRace{
+    constructor(p){
+        this.Name = p.Name;
+        this.LongDesc = p.LongDesc;
+        let pbs = p.BaseStats;
+
+        this.BaseStats = {};
+        for(let name of statsNames){
+            this.BaseStats[name] = pbs[name];
+        };
+
+        this.Icon = p.Icon;
+    }
+}
+
+var creatureRaces = {
+    Rat: new CreatureRace({
+        Name: "Rat",
+        LongDesc: "Small, furry, skittish.",
+        BaseStats: {
+            Strength: 4,
+            Constitution: 3,
+            Dexterity: 8,
+            Intelligence: 3,
+            Wisdom: 4,
+            Charisma: 5,
+            HP: 3,
+            MP: 10,
+            Speed: 15},
+        Icon: "r"
+    }),
+    Human: new CreatureRace({
+        Name: "Human",
+        LongDesc: "The standard by which everyone else is judged.",
+        BaseStats: {
+            Strength: 10,
+            Constitution: 10,
+            Dexterity: 10,
+            Intelligence: 10,
+            Wisdom: 10,
+            Charisma: 10,
+            HP: 10,
+            MP: 10,
+            Speed: 10},
+        Icon: "Y"
+    })
+}
+class CreatureJob{
+    constructor(properties){
+        let p = properties;
+        this.Name = p.Name;
+        this.LongDesc = p.LongDesc;
+        this.StatMulti = {};
+        for(let name of statsNames){
+            if(Object.keys(p.StatMulti).includes(name)){
+                this.StatMulti[name] = p.StatMulti[name];
+            }else{
+                this.StatMulti[name] = 1;
+            }
+        }
+    }
+}
+
+var creatureJobs = {
+    Freelancer: new CreatureJob({
+        Name: "Freelancer",
+        LongDesc: "No job. Nothing interesting.",
+        StatMulti: {}
     })
 }
 
@@ -342,149 +415,72 @@ class Tile{
     }
 }
 
-// npc, player
+// creatures
 
+class Creature{
+    constructor(crType){
+        this.crType = crType;
+    }
+}
+
+class Player extends Creature{
+    constructor(){
+        super();
+    }
+}
+
+// explicit globals invocation
+var globals = {};
 
 // UI code
 
+function buildUI(){
+    /* First, populate output panel
+    let outbuilder = [];
+    outbuilder.push("<div class='zmContainer'></div>");
+    gID("output").innerHTML = outbuilder.join("");*/
 
+    // Then, populate input panel
+    let inbuilder = [];
+    inbuilder.push("<div id='playerCommands'></div>")
+    gID("input").innerHTML = inbuilder.join("");
 
-// testing code
+    inbuilder = [];
+    inbuilder.push("<button id='look'>Look</button>");
+    inbuilder.push("<button id='map'>Map</button>");
 
-var globals = {}
+    const ii = ["W", "", "E"];
+    const jj = ["N", "", "S"];
+    let walks = [];
+    for(let i = 1; i <= 3; i += 1){
+        for(let j = 1; j <= 3; j += 1){
+            let cc = []
+            let bName = jj[j-1]+ ii[i-1];
+            if(bName == ""){
+                bName = "Me";
+            }
+            let nbID = "nav_" + bName;
+            cc.push(`<button id="${nbID}" `);
+            cc.push('style="');
+            let row = j.toString();
+            let rowEnd = (j+1).toString();
+            let col = i.toString();
+            let colEnd = (i+1).toString();
 
-function sharesListTests(){
-    gID("input").innerHTML += "<button id='testb'>Run test</button>";
-
-    gID("output").innerHTML += "<h2>X Results:</h2><span id='xresults'></span>";
-    gID("xresults").innerHTML = "<table id=xrtab></table>";
-    function xrtUpdate(r){
-        let tableBuilder = ["<tr><th>Name</th><th>Count</th></tr>"]
-        for(let key in r){
-            tableBuilder.push(
-                `<tr><td>${key}</td><td>${r[key]}</td>`
-            )
+            cc.push(`grid-area: ${row} / ${col} / ${rowEnd} / ${colEnd}; `);
+            cc.push(`">${bName}</button>`);
+            walks.push(cc.join(""));
         }
-        gID("xrtab").innerHTML = tableBuilder.join("");
     }
-
-    var x = new SharesList(
-        {a: 10, b: 20}
-    );
-    x.addShare("c", 10);
-    console.log(x.export());
-    console.log(x.calcTotal());
-
-    let results = {
-        a: 0,
-        b: 0,
-        c: 0,
-        total: 0
-    };
-    xrtUpdate(results);
-
-    gID("testb").onclick = function(){
-
-        for(let i = 0; i < 100000; i += 1){
-            results.total += 1;
-            results[x.getOne()] += 1;
-        }
-        xrtUpdate(results);
-    }
+    inbuilder.push(walks.join(""));
+    gID("playerCommands").innerHTML = inbuilder.join("");
 }
 
-function uniformTest(){
-    var trials = [];
-    function calcMu(ts){
-        let current = 0;
-        let count = ts.length;
-        for(let t of ts){
-            current += t;
-        }
-        return current / count;
-    }
-    function calcSigma(ts){
-        let mu = calcMu(ts);
-        let denom = ts.length - 1;
-        let total = 0;
-        for(let t of ts){
-            total += Math.abs(mu - t);
-        }
-        return total/denom;
-    }
-
-    var targetMean = 0;
-    var targetStdev = 1;
-
-    function runTrial(){
-        let iM = gID("iMean").value;
-        let iS = gID("iStdev").value;
-        if(iM != targetMean || iS != targetStdev){
-            trials = [];
-            targetMean = iM;
-            targetStdev = iS;
-        }
-        return trials.push(rNormal(targetMean, targetStdev));
-    }
-    gID("output").innerHTML = "<div id='trialDiv'></div><table id='muSigma'></table>"
-    gID("trialDiv").className = "floatList";
-
-    gID("muSigma").innerHTML = ["<tr><th id='totalRuns'>Total</th><th>Target</th><th>Sample</th></tr>",
-        "<tr><td>Mean</td><td id='tMean'></td><td id='sMean'></td></tr>",
-        "<tr><td>Standard deviation</td><td id='tSigma'></td><td id='sSigma'></td></tr>"].join("")
-    gID("muSigma").className = "allLinesTable";
-
-    function updateOutput(){
-        let trialBuilder = [];
-        for(let t of trials){
-            trialBuilder.push(t.toString());
-        }
-        gID("trialDiv").innerHTML = trialBuilder.join("<br />");
-
-        gID("totalRuns").innerHTML = `Total: ${trials.length}`;
-
-        gID("tMean").innerHTML = targetMean.toString();
-        gID("tSigma").innerHTML = targetStdev.toString();
-        
-        gID("sMean").innerHTML = calcMu(trials).toString();
-        gID("sSigma").innerHTML = calcSigma(trials).toString();
-    }
-
-    gID("input").innerHTML = ["<p><button id=rTButton>Run more tests</button></p>",
-        "<p>Note: changing mean or standard deviation will erase existing trial data</p>",
-        "<p>Mean: <input type='number' value=0 id='iMean'></input></p>",
-        "<p>Standard deviation: <input type='number' value=1 id='iStdev'></input></p>"].join("");
-    
-    gID("rTButton").onclick = function(){
-        for(let i = 0; i < 1000; i += 1){
-            runTrial();
-        }
-        updateOutput();
-    }
-
-    gID("rTButton").onclick();
+function zoneLookMode(){
+    gID("output").innerHTML = "<pre id='descPre'>No map to show</pre>";
+}
+function mapMode(){
+    gID("output").innerHTML = "<span class='zmContainer' id=zmCurrent></span>";
 }
 
-function simpleWorldTest(){
-    var w = globals.w = new World();
-    var s = globals.s = w.addStratum("Arena");
-    var z = globals.z = s.getEntrance();
-    console.log(z);
-
-    gID("input").innerHTML = "<button id=dZButton>Describe zone</button>";
-    gID("input").innerHTML += "<button id=gridButton>Show grid of zone</button>";
-
-    gID("dZButton").onclick = function(){
-        let described = z.describe("Zone");
-        gID("output").innerHTML = `<pre>${described}`;
-    }
-    gID("gridButton").onclick = function(){
-        let grid = z.showGrid();
-        gID("output").innerHTML = `<div class="zmContainer"><pre class="zoneMap">${grid}</pre></div>`;
-    }
-
-    gID("gridButton").onclick();
-}
-
-// actual main hook
-simpleWorldTest();
+buildUI();

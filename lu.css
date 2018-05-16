@@ -14,11 +14,23 @@
     padding: 0.2em;
 }
 
+#playerCommands {
+    display: flex;
+}
+
+.navPanel {
+    display: grid;
+    grid-template-columns: 2em 2em 2em;
+    grid-template-rows: 2em 2em 2em;
+}
+
 .zmContainer {
-    display: block;
+    display: inline-block;
     overflow: auto;
-    height: 28.8em;
-    width: 29.4em;
+    height: auto;
+    max-height: 40em;
+    width: auto;
+    max-width: 40em;
     border-style: solid;
     border-width: 0.1em;
 }
@@ -26,8 +38,6 @@
 .zoneMap {
     padding: 0em;
     margin: 0em;
-    font-size: 1.5em;
-    transform: scale(1, 0.5);
-    transform-origin: 0 0;
-    margin-bottom: -100%;
+    font-size: 0.75em;
+    letter-spacing: 0.75em;
 }
