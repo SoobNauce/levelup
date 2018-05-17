@@ -1,7 +1,13 @@
 // Independent functions
 function gID(id){// dumb wrapper for below
     return document.getElementById(id);
-}
+};
+
+function clearElement(element){
+    while (element.firstChild) {
+      element.removeChild(element.firstChild);
+    };
+};
 
 // Independent variables/constants
 
@@ -441,46 +447,78 @@ function buildUI(){
     gID("output").innerHTML = outbuilder.join("");*/
 
     // Then, populate input panel
-    let inbuilder = [];
-    inbuilder.push("<div id='playerCommands'></div>")
-    gID("input").innerHTML = inbuilder.join("");
+    let el = {
+        input: gID("input"),
+        output: gID("output")
+    }
+    el.pC = document.createElement("div");
+    el.pC.setAttribute("id", "playerCommands");
+    el.input.appendChild(el.pC);
+    
+    el.look = document.createElement("button");
+    el.look.setAttribute("id", "look");
+    el.look.appendChild( document.createTextNode("Look") );
+    el.pC.appendChild(el.look);
 
-    inbuilder = [];
-    inbuilder.push("<button id='look'>Look</button>");
-    inbuilder.push("<button id='map'>Map</button>");
+    el.map = document.createElement("button");
+    el.map.setAttribute("id", "map");
+    el.map.appendChild( document.createTextNode("Map") );
+    el.pC.appendChild(el.map);
 
-    const ii = ["W", "", "E"];
-    const jj = ["N", "", "S"];
-    let walks = [];
+    // now it's time for the directional buttons
+    // this is going to hurt
+    el.dtab = document.createElement("table");
+    el.dtab.setAttribute("id", "dtab");
+    el.dtab.classList.add("allLinesTable");
+    el.pC.appendChild(el.dtab);
+
+    const jj = ["W", "", "E"];// columns aka td elements
+    const ii = ["N", "", "S"];// rows aka tr elements
     for(let i = 1; i <= 3; i += 1){
+        let cr = document.createElement("tr");
+        el.dtab.appendChild(cr);
+
         for(let j = 1; j <= 3; j += 1){
-            let cc = []
+            let cc = document.createElement("td");
             let bName = jj[j-1]+ ii[i-1];
             if(bName == ""){
                 bName = "Me";
             }
-            let nbID = "nav_" + bName;
-            cc.push(`<button id="${nbID}" `);
-            cc.push('style="');
-            let row = j.toString();
-            let rowEnd = (j+1).toString();
-            let col = i.toString();
-            let colEnd = (i+1).toString();
+            cc.setAttribute("id", "nav_" + bName);
+            
+            ccb = document.createElement("button");
+            ccb.setAttribute("id", "nav_b_" + bName);
+            cc.appendChild(ccb);
 
-            cc.push(`grid-area: ${row} / ${col} / ${rowEnd} / ${colEnd}; `);
-            cc.push(`">${bName}</button>`);
-            walks.push(cc.join(""));
+            ccb.appendChild( document.createTextNode(bName) );
+            cr.appendChild(cc);
         }
     }
-    inbuilder.push(walks.join(""));
-    gID("playerCommands").innerHTML = inbuilder.join("");
 }
 
 function zoneLookMode(){
-    gID("output").innerHTML = "<pre id='descPre'>No map to show</pre>";
+    let descPre = gID("descPre");
+    if(descPre === null){// Create a new descPre
+        descPre = document.createElement("pre");
+        descPre.setAttribute("id", "descPre");
+        clearElement(gID("output"));
+        gID("output").appendChild(descPre);// maybe not the best handling for this?
+    }// else there already is one and we don't need to care what else is nearby
+
+    clearElement(descPre)
+    descPre.appendChild( document.createTextNode("No map to show") );
 }
 function mapMode(){
-    gID("output").innerHTML = "<span class='zmContainer' id=zmCurrent></span>";
+    let zmCurrent = gID("zmCurrent");
+    if(zmCurrent === null){
+        zmCurrent = document.createElement("span");
+        zmCurrent.setAttribute("id", "zmCurrent");
+        zmCurrent.classList.add("zmContainer");
+        clearElement(gID("output"));
+        gID("output").appendChild(zmCurrent);
+    }
+
+    clearElement(zmCurrent);
 }
 
 buildUI();

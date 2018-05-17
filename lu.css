@@ -18,12 +18,6 @@
     display: flex;
 }
 
-.navPanel {
-    display: grid;
-    grid-template-columns: 2em 2em 2em;
-    grid-template-rows: 2em 2em 2em;
-}
-
 .zmContainer {
     display: inline-block;
     overflow: auto;
