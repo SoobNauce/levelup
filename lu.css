@@ -14,10 +14,6 @@
     padding: 0.2em;
 }
 
-#playerCommands {
-    display: flex;
-}
-
 .zmContainer {
     display: inline-block;
     overflow: auto;

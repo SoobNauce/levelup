@@ -1,7 +1,22 @@
 // testing code
 
+/*
 function sharesListTests(){
-    gID("input").innerHTML += "<button id='testb'>Run test</button>";
+    let el = {
+        input: gID("input"),
+        output: gID("output")
+    }
+
+    el.testb = document.createElement("button");
+    el.testb.setAttribute("id", "testb");
+    el.input.appendChild(testb)
+    el.testb.appendChild( document.createTextNode("Run test") );
+
+    el.xrlabel = document.createElement("h2");
+    el.xrlabel.append( document.createTextNode("X Results:") );
+    el.loutput.appendChild(el.xrlabel);
+
+    el.xresults = document.createElement("span");
 
     gID("output").innerHTML += "<h2>X Results:</h2><span id='xresults'></span>";
     gID("xresults").innerHTML = "<table id=xrtab></table>";
@@ -39,7 +54,9 @@ function sharesListTests(){
         xrtUpdate(results);
     }
 }
+*/
 
+/*
 function uniformTest(){
     var trials = [];
     function calcMu(ts){
@@ -111,22 +128,32 @@ function uniformTest(){
 
     gID("rTButton").onclick();
 }
+*/
 
 function simpleWorldTest(){
     var w = globals.w = new World();
     var s = globals.s = w.addStratum("Arena");
     var z = globals.z = s.getEntrance();
-    console.log(z);
+    var p = globals.p = w.newPlayer(name="Ariadne");
+
+    buildUI();
 
     gID("look").onclick = function(){
         let described = z.describe("Zone");
+        let dnode = document.createTextNode(described);
         zoneLookMode();
-        gID("descPre").innerHTML = described;
+        clearElement(gID("descPre"));
+        gID("descPre").appendChild(dnode);
     }
     gID("map").onclick = function(){
         let grid = z.showGrid();
         mapMode();
-        gID("zmCurrent").innerHTML = `<pre class="zoneMap">${grid}</pre>`;
+
+        let zoneMap = document.createElement("pre");
+        zoneMap.appendChild(document.createTextNode( grid ));
+        zoneMap.classList.add("zoneMap");
+
+        gID("zmCurrent").appendChild(zoneMap);
     }
 
     gID("map").onclick();

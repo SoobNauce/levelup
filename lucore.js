@@ -208,6 +208,13 @@ class CreatureRace{
 
         this.Icon = p.Icon;
     }
+    exportStats(){
+        let result = {};
+        for(let name of statsNames){
+            result[name] = this.BaseStats[name];
+        }
+        return result;
+    }
 }
 
 var creatureRaces = {
@@ -256,6 +263,13 @@ class CreatureJob{
             }
         }
     }
+    exportMultis(){
+        result = {}
+        for(let name of statsNames){
+            result[name] = this.StatMulti[name];
+        }
+        return result;
+    }
 }
 
 var creatureJobs = {
@@ -290,6 +304,11 @@ class World{
         let ns = new Stratum(this, genType);
         this.strata.push(ns);
         return ns;
+    }
+    newPlayer(playerName){
+        let p = new Player();
+
+        return p;
     }
 }
 
@@ -424,14 +443,29 @@ class Tile{
 // creatures
 
 class Creature{
-    constructor(crType){
-        this.crType = crType;
+    constructor(race, job="Freelancer"){
+        this.level = 0;
+        this.race = race;
+        let baseRace = creatureRaces[race];
+        this.name = baseRace.randomName();
+
+        this.job = job;
+        let baseJob = creatureJobs[job];
+        let jMultis = baseJob.exportMultis();
+        this.title = baseJob.randomTitle(0);
+
+        this.stats = baseRace.exportStats();
+        for(let name of statsNames){
+            this.stats[name] *= jMultis[name];
+        }
+        this.levelUp();
     }
 }
 
 class Player extends Creature{
-    constructor(){
-        super();
+    constructor(name, race="Human", job="Freelancer"){
+        super(race, job);
+        this.name = name;
     }
 }
 
@@ -441,16 +475,29 @@ var globals = {};
 // UI code
 
 function buildUI(){
-    /* First, populate output panel
-    let outbuilder = [];
-    outbuilder.push("<div class='zmContainer'></div>");
-    gID("output").innerHTML = outbuilder.join("");*/
-
-    // Then, populate input panel
+    // Populate input panel
     let el = {
         input: gID("input"),
         output: gID("output")
     }
+
+    clearUI();
+
+    let h_notme = document.createElement("h2");
+    h_notme.appendChild( document.createTextNode("Not me") );
+    let h_me = document.createElement("h2");
+    h_me.appendChild( document.createTextNode("Me") );
+
+    el.output.appendChild(h_notme);
+    el.o_notme = document.createElement("span");
+    el.o_notme.setAttribute("id", "o_notme");
+    el.output.appendChild(el.o_notme);
+
+    el.output.appendChild(h_me);
+    el.o_me = document.createElement("span");
+    el.o_me.setAttribute("id", "o_me");
+    el.output.appendChild(el.o_me);
+    
     el.pC = document.createElement("div");
     el.pC.setAttribute("id", "playerCommands");
     el.input.appendChild(el.pC);
@@ -496,13 +543,18 @@ function buildUI(){
     }
 }
 
+function clearUI(){
+    clearElement(gID("input"));
+    clearElement(gID("output"));
+}
+
 function zoneLookMode(){
     let descPre = gID("descPre");
     if(descPre === null){// Create a new descPre
         descPre = document.createElement("pre");
         descPre.setAttribute("id", "descPre");
-        clearElement(gID("output"));
-        gID("output").appendChild(descPre);// maybe not the best handling for this?
+        clearElement(gID("o_notme"));
+        gID("o_notme").appendChild(descPre);// maybe not the best handling for this?
     }// else there already is one and we don't need to care what else is nearby
 
     clearElement(descPre)
@@ -514,8 +566,8 @@ function mapMode(){
         zmCurrent = document.createElement("span");
         zmCurrent.setAttribute("id", "zmCurrent");
         zmCurrent.classList.add("zmContainer");
-        clearElement(gID("output"));
-        gID("output").appendChild(zmCurrent);
+        clearElement(gID("o_notme"));
+        gID("o_notme").appendChild(zmCurrent);
     }
 
     clearElement(zmCurrent);

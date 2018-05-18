@@ -1,5 +1,9 @@
 TODO:
     convert stringbuilder js code so that it uses document.createElement, textNode etc
-        document.createElement; node.setAttribute; node.appendChild; node.insertBefore; node.classList
+        document.createElement; document.createTextNode
+        node.setAttribute; node.appendChild; node.insertBefore; node.classList
+            classList.add; classList.remove
     creature movement, player movement
     basic basic combat
+    turn order (first linear, then atb)
+    xp, skills, and practices
