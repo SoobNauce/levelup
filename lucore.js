@@ -198,6 +198,7 @@ const statsNames = ["Strength", "Constitution", "Dexterity",
 class CreatureRace{
     constructor(p){
         this.Name = p.Name;
+        this.BaseXP = p.BaseXP;
         this.LongDesc = p.LongDesc;
         let pbs = p.BaseStats;
 
@@ -231,7 +232,8 @@ var creatureRaces = {
             HP: 3,
             MP: 10,
             Speed: 15},
-        Icon: "r"
+        Icon: "r",
+        BaseXP: 1
     }),
     Human: new CreatureRace({
         Name: "Human",
@@ -246,13 +248,15 @@ var creatureRaces = {
             HP: 10,
             MP: 10,
             Speed: 10},
-        Icon: "Y"
+        Icon: "Y",
+        BaseXP: 1
     })
 }
 class CreatureJob{
     constructor(properties){
         let p = properties;
         this.Name = p.Name;
+        this.XPMulti = p.XPMulti;
         this.LongDesc = p.LongDesc;
         this.StatMulti = {};
         for(let name of statsNames){
@@ -276,7 +280,8 @@ var creatureJobs = {
     Freelancer: new CreatureJob({
         Name: "Freelancer",
         LongDesc: "No job. Nothing interesting.",
-        StatMulti: {}
+        StatMulti: {},
+        XPMulti: 1
     })
 }
 
@@ -445,6 +450,8 @@ class Tile{
 class Creature{
     constructor(race, job="Freelancer"){
         this.level = 0;
+        this.xp = 0;
+
         this.race = race;
         let baseRace = creatureRaces[race];
         this.name = baseRace.randomName();
@@ -456,9 +463,17 @@ class Creature{
 
         this.stats = baseRace.exportStats();
         for(let name of statsNames){
-            this.stats[name] *= jMultis[name];
+            this.stats[name] *= 10;// everyone gets 10x stats for free
+            this.stats[name] *= jMultis[name];// stats are then scaled based on job
         }
         this.levelUp();
+    }
+    levelUp(){
+        let baseRace = creatureRaces[this.race];
+        let baseJob = creatureJobs[this.job];
+        
+        for(let name of statsNames){
+        }
     }
 }
 
